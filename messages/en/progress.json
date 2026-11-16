@@ -1,0 +1,57 @@
+{
+  "status": {
+    "completed": "Completed",
+    "failed": "Failed",
+    "processing": "Processing",
+    "queued": "Queued",
+    "pending": "Pending"
+  },
+  "runtime": {
+    "waitingExecution": "Waiting to start",
+    "taskCreated": "Task created",
+    "taskStarted": "Task started",
+    "taskCompleted": "Task completed",
+    "taskFailed": "Task failed",
+    "taskProcessing": "Task processing...",
+    "llm": {
+      "processing": "Model is processing...",
+      "output": "Model is generating output...",
+      "reasoning": "Model is reasoning...",
+      "completed": "Model output completed",
+      "failed": "Model output failed"
+    },
+    "stage": {
+      "llmSubmit": "Submitting model request",
+      "llmStreaming": "Model streaming output",
+      "llmFallbackNonStream": "Model fallback to non-stream mode",
+      "llmCompleted": "Model output completed",
+      "llmFailed": "Model output failed"
+    }
+  },
+  "taskType": {
+    "creativeWork": "Creative work",
+    "workspaceResourceImage": "Image resource generation",
+    "workspaceResourceAudio": "Audio resource generation",
+    "workspaceResourceVoice": "Voice resource generation",
+    "workspaceResourceVideo": "Video resource generation",
+    "workspaceResourceVideoMerge": "Video resource merge",
+    "generic": "Task"
+  },
+  "stage": {
+    "received": "Task received",
+    "creativeWorkPrepare": "Prepare creative context",
+    "creativeWorkReasoning": "Create resource content",
+    "creativeWorkFinalize": "Persist creative result",
+    "workspaceResourcePrepare": "Prepare resource generation",
+    "workspaceResourceGenerate": "Generate resource",
+    "workspaceResourcePersist": "Persist resource",
+    "generateVoiceSubmit": "Submit voice generation task",
+    "persistVoice": "Persist voice resource",
+    "pollingExternal": "Waiting for external service",
+    "retrying": "Retrying task",
+    "enqueueFailed": "Task enqueue failed",
+    "taskReconciled": "Task stopped after queue reconciliation",
+    "taskTimeout": "Task stopped after its heartbeat timed out",
+    "llmProxyPersist": "Persist model result"
+  }
+}

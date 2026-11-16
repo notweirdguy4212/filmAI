@@ -1,0 +1,278 @@
+'use client'
+import { logError as _ulogError, logWarn as _ulogWarn } from '@/lib/logging/core'
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import {
+  TASK_SSE_EVENT_TYPE,
+  WORKSPACE_SSE_EVENT_TYPE,
+  type SSEEvent,
+} from '@/lib/sse/events'
+import {
+  applyWorkspaceSSEEvent,
+  syncProjectViewRevision,
+} from '../workspace-sse-event-sync'
+import { WorkspaceSSEEventSequence } from '../workspace-sse-event-sequence'
+import {
+  advanceWorkspaceSseCursor,
+  EMPTY_WORKSPACE_SSE_CURSOR,
+  isWorkspaceSseEvent,
+  parseWorkspaceSseCursor,
+  parseWorkspaceSseHeartbeat,
+  serializeWorkspaceSseCursor,
+  WORKSPACE_SSE_CONTROL_EVENT_TYPE,
+  WORKSPACE_SSE_HEARTBEAT_TIMEOUT_MS,
+  type WorkspaceSseCursor,
+} from '@/lib/sse/protocol'
+import { useToast } from '@/contexts/ToastContext'
+import { useTranslations } from 'next-intl'
+
+type UseSSEOptions = {
+  projectId?: string | null
+  enabled?: boolean
+  onEvent?: (event: SSEEvent) => void
+}
+
+function cursorStorageKey(projectId: string): string {
+  return `workspace-sse-cursor:v6:${projectId}`
+}
+
+function connectionIdStorageKey(projectId: string): string {
+  return `workspace-sse-connection:v1:${projectId}`
+}
+
+function readOrCreateConnectionId(projectId: string): string | null {
+  if (typeof window === 'undefined') return null
+  const storage = window.sessionStorage
+  const key = connectionIdStorageKey(projectId)
+  const existing = storage?.getItem(key)
+  if (existing) return existing
+  const connectionId = window.crypto.randomUUID()
+  storage?.setItem(key, connectionId)
+  return connectionId
+}
+
+function readStoredCursor(projectId: string): WorkspaceSseCursor {
+  if (typeof window === 'undefined') return { ...EMPTY_WORKSPACE_SSE_CURSOR }
+  const storage = window.sessionStorage
+  if (!storage) return { ...EMPTY_WORKSPACE_SSE_CURSOR }
+  try {
+    return parseWorkspaceSseCursor(storage.getItem(cursorStorageKey(projectId)))
+  } catch (error) {
+    _ulogError('[useSSE] invalid durable cursor', error)
+    storage.removeItem(cursorStorageKey(projectId))
+    return { ...EMPTY_WORKSPACE_SSE_CURSOR }
+  }
+}
+
+function persistCursor(projectId: string, cursor: WorkspaceSseCursor): void {
+  window.sessionStorage?.setItem(cursorStorageKey(projectId), serializeWorkspaceSseCursor(cursor))
+}
+
+export function useSSE({ projectId, enabled = true, onEvent }: UseSSEOptions) {
+  const queryClient = useQueryClient()
+  const tErrors = useTranslations('errors')
+  const { dismissToast, showToast } = useToast()
+  const sourceRef = useRef<EventSource | null>(null)
+  const reconnectToastRef = useRef<string | null>(null)
+  const reconnectAttemptRef = useRef(0)
+  const reconnectTimerRef = useRef<number | null>(null)
+  const stabilityTimerRef = useRef<number | null>(null)
+  const heartbeatDeadlineTimerRef = useRef<number | null>(null)
+  const cursorRef = useRef<WorkspaceSseCursor>({ ...EMPTY_WORKSPACE_SSE_CURSOR })
+  const [snapshotResyncGeneration, setSnapshotResyncGeneration] = useState(0)
+  const [connectionState, setConnectionState] = useState<'connecting' | 'connected' | 'reconnecting'>('connecting')
+
+  const connection = useMemo(() => {
+    if (!projectId) return null
+    const cursor = readStoredCursor(projectId)
+    const connectionId = readOrCreateConnectionId(projectId)
+    if (!connectionId) return null
+    const params = new URLSearchParams({
+      projectId,
+      connectionId,
+    })
+    if (cursor.taskEventId > 0) {
+      params.set('cursor', serializeWorkspaceSseCursor(cursor))
+    }
+    return { url: `/api/sse?${params}`, cursor, generation: snapshotResyncGeneration }
+  }, [projectId, snapshotResyncGeneration])
+  const eventSequence = useMemo(
+    () => new WorkspaceSSEEventSequence(connection?.cursor.taskEventId ?? 0),
+    [connection],
+  )
+
+  const applyEvent = useCallback((payload: SSEEvent) => {
+    if (!projectId) return
+    applyWorkspaceSSEEvent({
+      queryClient,
+      event: payload,
+      projectId,
+    })
+    onEvent?.(payload)
+  }, [onEvent, projectId, queryClient])
+
+  const handleParsedEvent = useCallback((payload: unknown, transportCursor?: string) => {
+    if (!isWorkspaceSseEvent(payload)) throw new Error('WORKSPACE_SSE_EVENT_INVALID')
+    const decision = eventSequence.process(payload, applyEvent)
+    if (decision === 'duplicate' || decision === 'invalid') return
+    const nextCursor = transportCursor
+      ? parseWorkspaceSseCursor(transportCursor)
+      : advanceWorkspaceSseCursor(cursorRef.current, payload)
+    cursorRef.current = nextCursor
+    if (projectId) {
+      persistCursor(projectId, nextCursor)
+    }
+  }, [applyEvent, eventSequence, projectId])
+
+  const requestSnapshotResync = useCallback(() => {
+    if (!projectId) return
+    window.sessionStorage?.removeItem(cursorStorageKey(projectId))
+    cursorRef.current = { ...EMPTY_WORKSPACE_SSE_CURSOR }
+    sourceRef.current?.close()
+    sourceRef.current = null
+    setSnapshotResyncGeneration((current) => current + 1)
+  }, [projectId])
+
+  useEffect(() => {
+    if (!enabled || !connection || !projectId) return
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Publish the initial state of the EventSource subscription before it opens.
+    setConnectionState('connecting')
+    cursorRef.current = readStoredCursor(projectId)
+    const source = new EventSource(connection.url)
+    sourceRef.current = source
+
+    const scheduleResync = (context: string) => {
+      setConnectionState('reconnecting')
+      if (!reconnectToastRef.current) {
+        reconnectToastRef.current = showToast(tErrors('sseDisconnected'), 'warning', 0)
+      }
+      const attempt = reconnectAttemptRef.current + 1
+      reconnectAttemptRef.current = attempt
+      const delayMs = Math.min(30_000, 1_000 * 2 ** Math.min(attempt - 1, 5))
+      _ulogWarn(`[useSSE] ${context}; scheduling resync`, { projectId, attempt, delayMs })
+      if (reconnectTimerRef.current !== null) window.clearTimeout(reconnectTimerRef.current)
+      reconnectTimerRef.current = window.setTimeout(() => {
+        reconnectTimerRef.current = null
+        requestSnapshotResync()
+      }, delayMs)
+    }
+
+    const armHeartbeatDeadline = () => {
+      if (heartbeatDeadlineTimerRef.current !== null) {
+        window.clearTimeout(heartbeatDeadlineTimerRef.current)
+      }
+      heartbeatDeadlineTimerRef.current = window.setTimeout(() => {
+        heartbeatDeadlineTimerRef.current = null
+        scheduleResync('heartbeat timed out')
+      }, WORKSPACE_SSE_HEARTBEAT_TIMEOUT_MS)
+    }
+
+    const handleEvent = (event: MessageEvent) => {
+      try {
+        handleParsedEvent(JSON.parse(event.data || '{}'), event.lastEventId || undefined)
+      } catch (error) {
+        _ulogError('[useSSE] failed to parse event', error)
+        // 立即重连会撞上 bootstrap 重发的同一条毒事件,形成自激循环;必须退避。
+        scheduleResync('event handling failed')
+      }
+    }
+
+    const handleHeartbeat = (event: MessageEvent) => {
+      try {
+        const heartbeat = parseWorkspaceSseHeartbeat(JSON.parse(event.data || '{}'))
+        armHeartbeatDeadline()
+        if (heartbeat.workspaceResourceRevision === null) return
+        void syncProjectViewRevision({
+          queryClient,
+          projectId,
+          serverRevision: heartbeat.workspaceResourceRevision,
+        })
+          .catch((error: unknown) => {
+            _ulogWarn('[useSSE] workspace resource revision sync failed', {
+              projectId,
+              serverRevision: heartbeat.workspaceResourceRevision,
+              error: error instanceof Error ? error.message : String(error),
+            })
+          })
+      } catch (error) {
+        _ulogError('[useSSE] invalid heartbeat', error)
+        scheduleResync('heartbeat handling failed')
+      }
+    }
+
+    source.onmessage = handleEvent
+    const namedEvents = [
+      TASK_SSE_EVENT_TYPE.LIFECYCLE,
+      TASK_SSE_EVENT_TYPE.STREAM,
+      WORKSPACE_SSE_EVENT_TYPE.RESOURCE_CHANGED,
+      WORKSPACE_SSE_EVENT_TYPE.AGENT_SESSION_VIEW_CHANGED,
+      WORKSPACE_SSE_EVENT_TYPE.AGENT_TURN_STREAM,
+    ] as const
+    const listeners: Array<{ type: string; handler: EventListener }> = []
+    for (const type of namedEvents) {
+      const handler: EventListener = (event) => handleEvent(event as MessageEvent)
+      source.addEventListener(type, handler)
+      listeners.push({ type, handler })
+    }
+    const heartbeatHandler: EventListener = (event) => handleHeartbeat(event as MessageEvent)
+    source.addEventListener(WORKSPACE_SSE_CONTROL_EVENT_TYPE.HEARTBEAT, heartbeatHandler)
+    listeners.push({ type: WORKSPACE_SSE_CONTROL_EVENT_TYPE.HEARTBEAT, handler: heartbeatHandler })
+    source.onopen = () => {
+      setConnectionState('connected')
+      armHeartbeatDeadline()
+      if (reconnectToastRef.current) {
+        dismissToast(reconnectToastRef.current)
+        reconnectToastRef.current = null
+        showToast(tErrors('sseRestored'), 'success', 3000)
+      }
+      // 不能在每个事件/每次 open 时立刻清零:毒事件循环里每一轮都会短暂"健康",
+      // 立刻清零会把退避锁死在 1s。只有连接稳定存活 60s 才认为恢复。
+      if (stabilityTimerRef.current !== null) window.clearTimeout(stabilityTimerRef.current)
+      stabilityTimerRef.current = window.setTimeout(() => {
+        stabilityTimerRef.current = null
+        reconnectAttemptRef.current = 0
+      }, 60_000)
+    }
+    source.onerror = () => {
+      // EventSource 只对网络类中断自动重连;服务端返回非 2xx(部署重启的 502、
+      // bootstrap 5xx、401)时按规范进入 CLOSED 且永不重试——必须显式重建,
+      // 否则页面在下一次刷新前永久失联("必须刷新才显示"的传输层根因)。
+      if (source.readyState !== EventSource.CLOSED) return
+      scheduleResync('stream closed')
+    }
+
+    return () => {
+      for (const listener of listeners) {
+        source.removeEventListener(listener.type, listener.handler)
+      }
+      if (reconnectTimerRef.current !== null) {
+        window.clearTimeout(reconnectTimerRef.current)
+        reconnectTimerRef.current = null
+      }
+      if (stabilityTimerRef.current !== null) {
+        window.clearTimeout(stabilityTimerRef.current)
+        stabilityTimerRef.current = null
+      }
+      if (heartbeatDeadlineTimerRef.current !== null) {
+        window.clearTimeout(heartbeatDeadlineTimerRef.current)
+        heartbeatDeadlineTimerRef.current = null
+      }
+      source.close()
+      sourceRef.current = null
+    }
+  }, [connection, dismissToast, enabled, handleParsedEvent, projectId, queryClient, requestSnapshotResync, showToast, tErrors])
+
+  useEffect(() => () => {
+    if (reconnectToastRef.current) {
+      dismissToast(reconnectToastRef.current)
+      reconnectToastRef.current = null
+    }
+  }, [dismissToast])
+
+  return {
+    connected: connectionState === 'connected',
+    connectionState,
+  }
+}

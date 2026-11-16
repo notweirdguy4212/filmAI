@@ -1,0 +1,44 @@
+[
+  {
+    "modelType": "video",
+    "provider": "example-provider",
+    "modelId": "example-video-model",
+    "capabilities": {
+      "video": {
+        "durationOptions": [5, 10, 15],
+        "resolutionOptions": ["720p", "1080p"],
+        "firstlastframe": true,
+        "supportGenerateAudio": true,
+        "fieldI18n": {
+          "duration": {
+            "labelKey": "video.capability.duration",
+            "unitKey": "video.unit.second"
+          },
+          "resolution": {
+            "labelKey": "video.capability.resolution"
+          }
+        }
+      }
+    }
+  },
+  {
+    "modelType": "image",
+    "provider": "example-provider",
+    "modelId": "example-image-model",
+    "capabilities": {
+      "image": {
+        "resolutionOptions": ["2K", "4K"],
+        "fieldI18n": {
+          "resolution": {
+            "labelKey": "image.capability.resolution"
+          }
+        }
+      }
+    }
+  },
+  {
+    "modelType": "llm",
+    "provider": "example-provider",
+    "modelId": "example-llm-model"
+  }
+]

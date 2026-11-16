@@ -1,0 +1,36 @@
+import type { ReactNode } from 'react'
+import type { CustomModel, Provider } from '../types'
+import type { UnifiedModelType } from '@/lib/ai-registry/types'
+
+export interface ProviderCardDefaultModels {
+  assistantModel?: string
+}
+
+export interface ProviderCardProps {
+  provider: Provider
+  dragHandle?: ReactNode
+  models: CustomModel[]
+  allModels?: CustomModel[]
+  defaultModels: ProviderCardDefaultModels
+  expanded: boolean
+  onExpandChange: (expanded: boolean) => void
+  onUpdateApiKey: (providerId: string, apiKey: string) => void
+  onDeleteModel: (modelKey: string) => void
+  onUpdateModel?: (modelKey: string, updates: Partial<CustomModel>) => void
+  onDeleteProvider?: (providerId: string) => void
+  onAddModel: (model: Omit<CustomModel, 'enabled'>) => void
+}
+
+export interface ModelFormState {
+  name: string
+  modelId: string
+}
+
+export type ProviderCardModelType = UnifiedModelType
+
+export type ProviderCardGroupedModels = Partial<Record<ProviderCardModelType, CustomModel[]>>
+
+export type ProviderCardTranslator = (
+  key: string,
+  values?: Record<string, string | number>,
+) => string
