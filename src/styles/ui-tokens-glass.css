@@ -1,0 +1,147 @@
+:root {
+  /* Surface and text */
+  --glass-bg-canvas: #f3f4f6;
+  --glass-bg-surface: rgba(255, 255, 255, 0.88);
+  --glass-bg-surface-strong: rgba(255, 255, 255, 0.94);
+  --glass-bg-surface-modal: rgba(255, 255, 255, 0.97);
+  --glass-bg-muted: rgba(255, 255, 255, 0.86);
+  --glass-bg-nav: rgba(255, 255, 255, 0.96);
+  --glass-text-primary: #0a0a0a;
+  --glass-text-secondary: #111827;
+  --glass-text-tertiary: #4b5563;
+  --glass-text-on-accent: #ffffff;
+
+  /* Border strategy: default weak stroke, focus/error stronger */
+  --glass-stroke-soft: rgba(255, 255, 255, 0.22);
+  --glass-stroke-base: rgba(111, 126, 153, 0.24);
+  --glass-stroke-strong: rgba(93, 109, 138, 0.36);
+  --glass-stroke-focus: rgba(47, 123, 255, 0.64);
+  --glass-stroke-danger: rgba(236, 72, 72, 0.64);
+  --glass-stroke-warning: rgba(234, 149, 0, 0.62);
+  --glass-stroke-success: rgba(18, 176, 109, 0.62);
+
+  /* Elevation + blur */
+  --glass-shadow-sm: 0 2px 10px rgba(22, 35, 64, 0.05);
+  --glass-shadow-md: 0 6px 18px rgba(19, 35, 66, 0.08);
+  --glass-shadow-lg: 0 10px 24px rgba(20, 35, 69, 0.1);
+  --glass-shadow-modal: 0 14px 34px rgba(15, 32, 66, 0.14);
+  --glass-shadow-nav: 0 8px 18px rgba(15, 32, 66, 0.1);
+  --glass-blur-sm: 4px;
+  --glass-blur-md: 8px;
+  --glass-blur-lg: 12px;
+  --glass-blur-nav: 16px;
+
+  /* Radius */
+  --glass-radius-xs: 8px;
+  --glass-radius-sm: 12px;
+  --glass-radius-md: 16px;
+  --glass-radius-lg: 22px;
+  --glass-radius-xl: 28px;
+
+  /* Spacing + density */
+  --glass-space-1: 4px;
+  --glass-space-2: 8px;
+  --glass-space-3: 12px;
+  --glass-space-4: 16px;
+  --glass-space-5: 20px;
+  --glass-space-6: 24px;
+  --glass-space-7: 28px;
+  --glass-space-8: 32px;
+  --glass-density-compact-scale: 0.86;
+  --glass-density-default-scale: 1;
+
+  /* Tone system
+   *
+   * Surfaces stay white; the colour lives in the text and the icon. A large
+   * block of low-saturation translucent colour is what reads cheap — the hue
+   * itself never did. Depth comes from a shadow rather than a ring, because a
+   * dense screen of ringed pills turns into a screen of boxes.
+   *
+   * Every tone therefore shares one background and one shadow, and differs
+   * only in `-fg`. Never reintroduce a per-tone background. */
+  --glass-tone-surface: #ffffff;
+  --glass-tone-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.07),
+    0 1px 3px -1px rgba(15, 23, 42, 0.05);
+  /* Interactive tone surfaces lift instead of tinting — there is no fill left
+     to darken, and tinting would put the colour back onto the block. */
+  --glass-tone-shadow-hover:
+    0 2px 4px -1px rgba(15, 23, 42, 0.10),
+    0 4px 10px -4px rgba(15, 23, 42, 0.14);
+
+  /* Not every job that used to grab a tone background is a chip. An icon disc,
+     a selected row and a loading placeholder all need a quiet neutral area,
+     not a semantic one — they get their own tokens so nobody reaches back into
+     the tone scale for a fill. */
+  --glass-tone-soft: rgba(15, 23, 42, 0.05);
+  --glass-skeleton-bg: rgba(15, 23, 42, 0.09);
+
+  --glass-tone-neutral-bg: var(--glass-tone-surface);
+  --glass-tone-neutral-fg: #52525b;
+  --glass-tone-info-bg: var(--glass-tone-surface);
+  --glass-tone-info-fg: #1d4ed8;
+  --glass-tone-success-bg: var(--glass-tone-surface);
+  --glass-tone-success-fg: #047857;
+  --glass-tone-warning-bg: var(--glass-tone-surface);
+  --glass-tone-warning-fg: #b45309;
+  --glass-tone-danger-bg: var(--glass-tone-surface);
+  --glass-tone-danger-fg: #b91c1c;
+
+  --glass-overlay-soft: rgba(10, 16, 30, 0.34);
+  --glass-overlay: rgba(10, 16, 30, 0.46);
+  --glass-overlay-strong: rgba(10, 16, 30, 0.58);
+
+  /* Accent + interactive rings */
+  --glass-accent-from: #2f7bff;
+  --glass-accent-to: #5ca8ff;
+  --glass-accent-shadow-soft: rgba(47, 123, 255, 0.24);
+  --glass-accent-shadow-strong: rgba(47, 123, 255, 0.32);
+  --glass-focus-ring: rgba(47, 123, 255, 0.16);
+  --glass-focus-ring-strong: rgba(47, 123, 255, 0.22);
+  --glass-danger-ring: rgba(239, 68, 68, 0.14);
+  --glass-ghost-hover-bg: rgba(255, 255, 255, 0.5);
+
+  /* Selection system: pinned hover-style active state for menus and dropdown items */
+  --glass-selection-bg: rgba(10, 10, 10, 0.05);
+  --glass-selection-hover-bg: rgba(10, 10, 10, 0.05);
+  --glass-selection-border: transparent;
+  --glass-selection-focus-ring: rgba(10, 10, 10, 0.1);
+  --glass-selection-shadow: none;
+
+  /* V3 — Arc/Raycast creative-tool layer */
+  --glass-accent-deep: #1d63e8;
+  --glass-cta-gradient: linear-gradient(135deg, var(--glass-accent-from) 0%, var(--glass-accent-deep) 100%);
+  --glass-cta-shadow: 0 10px 26px -10px rgba(47, 123, 255, 0.5);
+  --glass-cta-shadow-hover: 0 14px 30px -10px rgba(47, 123, 255, 0.6);
+  --glass-tower-bg: rgba(255, 255, 255, 0.78);
+  --glass-tower-blur: 28px;
+  --glass-tower-saturate: 1.5;
+  --glass-tower-radius: 20px;
+  --glass-tower-highlight: rgba(255, 255, 255, 0.6);
+  --glass-tower-shadow: -10px 0 30px -22px rgba(15, 23, 42, 0.14);
+  --glass-dock-bg: rgba(255, 255, 255, 0.85);
+  --glass-dock-blur: 20px;
+  --glass-dock-shadow: 0 10px 30px -14px rgba(15, 23, 42, 0.35);
+  --glass-menu-card-bg: rgba(255, 255, 255, 0.92);
+  --glass-menu-card-shadow:
+    0 24px 60px -24px rgba(15, 23, 42, 0.4),
+    0 4px 14px -8px rgba(15, 23, 42, 0.14);
+  --glass-meter-track: rgba(15, 23, 42, 0.08);
+}
+
+/* Low-cost preset for performance-sensitive environments */
+[data-glass-preset='subtle'] {
+  --glass-bg-surface: rgba(255, 255, 255, 0.92);
+  --glass-bg-surface-strong: rgba(255, 255, 255, 0.96);
+  --glass-bg-surface-modal: rgba(255, 255, 255, 0.98);
+  --glass-bg-nav: rgba(255, 255, 255, 0.98);
+  --glass-blur-sm: 2px;
+  --glass-blur-md: 4px;
+  --glass-blur-lg: 8px;
+  --glass-shadow-sm: 0 1px 6px rgba(22, 35, 64, 0.04);
+  --glass-shadow-md: 0 4px 12px rgba(19, 35, 66, 0.06);
+  --glass-shadow-lg: 0 8px 18px rgba(20, 35, 69, 0.08);
+  --glass-shadow-modal: 0 10px 22px rgba(15, 32, 66, 0.1);
+  --glass-shadow-nav: 0 6px 14px rgba(15, 32, 66, 0.08);
+  --glass-blur-nav: 12px;
+}

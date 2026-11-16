@@ -1,0 +1,5 @@
+{
+  "projectNotFound": "Project not found",
+  "projectLoadFailed": "We couldn't load this project. Please try again.",
+  "backToWorkspace": "Back to Workspace"
+}
