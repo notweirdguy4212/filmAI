@@ -1,0 +1,130 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/ee/node_modules/
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/.next-golden/
+/.next-security/
+/.tsconfig-security-*.json
+/.next-verify/
+/.next-verify-*/
+/out/
+/.generated/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# vercel
+.vercel
+
+# IDE and AI tools
+.vscode/
+.idea/
+.claude/
+.cursor/
+.gemini/
+.artifacts/
+.agent/
+.shared/
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+/src/generated/prisma
+
+# logs
+/logs
+*.log
+
+# environment variables
+.env
+.env.production
+.env.local
+.env.test
+.env.*.local
+docker-logs/
+
+# official cloud content (private, never commit)
+.official-content/
+/src/app/*/pricing-lab/
+
+# database
+*.db
+*.db-journal
+prisma/data/
+
+# uploads (user data)
+uploads/
+/data/
+/.runtime/
+
+certificates
+
+# local temporary snapshots for old-version verification
+.tmp-old-snapshot-*/
+# root-level throwaway debug scripts (may embed local project ids; never commit)
+/.tmp-*
+/debug-request.json
+/scripts/migrations/reports/
+.stryker-tmp/
+reports/mutation/
+reports/test-results/
+
+# temporary files
+tmp/
+
+# local agent scratch (public exposure is decided by scripts/edition/export-self-hosted.mjs, not here)
+/agent/
+
+# Local documentation is ignored by default; tracked public guides are explicit.
+docs/**
+!docs/INSTALL.md
+!docs/architecture/
+!docs/architecture/**
+/artifacts/browser-security/
+/artifacts/golden-journey/
+# GitHub CI workflows (internal)
+# .github/ — 只保留 workflows，忽略其他
+.github/*
+!.github/workflows/
+!.github/agents/
+
+# Locally downloaded dev binaries (Stripe CLI)
+.tools/
+
+# Local AI model weights, runtime outputs and caches (source code is retained)
+engines/**/models/
+engines/**/output/
+engines/**/input/
+engines/**/temp/
+engines/**/__pycache__/
+engines/**/*.safetensors
+engines/**/*.ckpt
+engines/**/*.pth
+engines/**/*.pt
+engines/**/*.gguf
+engines/**/*.bin

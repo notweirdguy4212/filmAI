@@ -1,0 +1,33 @@
+
+/* Production continuity controls */
+.film-continuity-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 0 14px}
+.film-continuity-grid label{display:flex;flex-direction:column;gap:7px;color:var(--film-muted,#999);font-size:10px;letter-spacing:.09em;font-weight:700}
+.film-continuity-grid textarea{width:100%;resize:vertical;min-height:68px;padding:11px 12px;border:1px solid var(--film-border,#303039);border-radius:9px;background:var(--film-input,#111116);color:var(--film-text,#eee);font:12px/1.55 inherit;letter-spacing:normal}
+@media(max-width:720px){.film-continuity-grid{grid-template-columns:1fr}}
+.film-output-links{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0 0 auto;max-width:100%}
+.film-output-links a{color:#d7b58c;font-size:11px;text-decoration:none;border:1px solid rgba(215,181,140,.25);border-radius:6px;padding:5px 8px}
+.film-output-links a:hover{background:rgba(215,181,140,.1)}
+
+/* Film production upgrade: generated media, frame trim and finishing controls. */
+.film-generated-preview{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;background:#08090d;z-index:2}
+.film-scene-art{position:relative;overflow:hidden}
+.film-frame-controls,.film-grade-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px;padding:14px;border:1px solid var(--film-border,rgba(255,255,255,.09));border-radius:12px;background:rgba(255,255,255,.025)}
+.film-frame-controls label,.film-grade-controls label,.film-audio-workflow label{display:flex;flex-direction:column;gap:7px;color:var(--film-muted,#a4a5ad);font-size:11px;font-weight:700;letter-spacing:.04em}
+.film-frame-controls input,.film-frame-controls select,.film-audio-workflow textarea{width:100%;min-width:0;padding:10px 11px;border:1px solid var(--film-border,rgba(255,255,255,.12));border-radius:8px;background:#111319;color:#f4f4f6;font:inherit;letter-spacing:normal}
+.film-grade-controls input[type=range]{width:100%;accent-color:#d7a66c}
+.film-audio-workflow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:20px}
+.film-audio-workflow textarea{resize:vertical;min-height:90px}
+@media(max-width:760px){.film-frame-controls,.film-grade-controls,.film-audio-workflow{grid-template-columns:1fr}.film-timeline-actions{flex-wrap:wrap}}
+.film-subtitle-tool{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:20px;padding:16px;border:1px solid var(--film-border,rgba(255,255,255,.1));border-radius:12px;background:rgba(255,255,255,.025)}
+.film-subtitle-tool>div{flex:1 1 240px}.film-subtitle-tool h3{margin:0 0 5px;color:#f2f2f4;font-size:14px}.film-subtitle-tool p{margin:0;color:var(--film-muted,#a4a5ad);font-size:12px}.film-subtitle-tool>span{color:#c5d9c8;font-size:11px}
+.film-lut-upload{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px;padding:12px 14px;border:1px dashed var(--film-border,rgba(255,255,255,.2));border-radius:10px;color:var(--film-muted,#a4a5ad);font-size:12px}.film-lut-upload input{max-width:240px;color:#ddd}.film-lut-upload span{color:#e3c49b}
+
+/* v1.3 multitrack editor controls */
+.film-nle-track{margin:14px 0;padding:13px;border:1px solid var(--film-border,rgba(255,255,255,.1));border-radius:12px;background:rgba(255,255,255,.018)}
+.film-nle-clip{margin:10px 0;padding:12px;border:1px solid rgba(215,181,140,.22);border-radius:9px;background:rgba(215,181,140,.045)}
+.film-nle-clip>strong{display:block;margin-bottom:10px;color:#f1dfc8;font-size:12px;overflow-wrap:anywhere}
+.film-nle-track .film-muted-note{margin:8px 0 2px}
+.film-timeline-actions select,.film-continuity-grid select,.film-continuity-grid input{width:100%;min-width:0;padding:10px 11px;border:1px solid var(--film-border,#303039);border-radius:8px;background:#111319;color:#f4f4f6;font:inherit;letter-spacing:normal}
+.film-timeline-actions label{display:flex;flex-direction:column;gap:6px;min-width:130px;color:var(--film-muted,#a4a5ad);font-size:11px;font-weight:700}
+.film-nle-clip .film-frame-controls{grid-template-columns:repeat(3,minmax(0,1fr));margin:8px 0 0;padding:0;border:0;background:transparent}
+@media(max-width:760px){.film-nle-clip .film-frame-controls{grid-template-columns:1fr}}

@@ -1,0 +1,13 @@
+{
+  "capability": {
+    "generationMode": "Generation mode",
+    "duration": "Duration",
+    "resolution": "Resolution",
+    "quality": "Image quality",
+    "aspectRatio": "Aspect ratio",
+    "reasoningEffort": "Reasoning effort",
+    "rate": "Rate",
+    "mode": "Mode",
+    "generateAudio": "Generate audio"
+  }
+}
